@@ -13,12 +13,12 @@
   
   <DisplayName DefaultValue="Outlook Weekly Reports"/>
   <Description DefaultValue="Automated weekly summaries of your Outlook activity"/>
-  <IconUrl DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/assets/icon-80.png"/>
+  <IconUrl DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/assets/icon-80.png"/>
   <SupportUrl DefaultValue="https://github.com/your-repo"/>
   
   <AppDomains>
-    <AppDomain>https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net</AppDomain>
+    <AppDomain>https://happy-rock-01b03941e.1.azurestaticapps.net</AppDomain>
     <AppDomain>https://login.microsoftonline.com</AppDomain>
   </AppDomains>
   
@@ -35,15 +35,15 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/taskpane.html"/>
+        <SourceLocation DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
       <TabletSettings>
-        <SourceLocation DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/taskpane.html"/>
+        <SourceLocation DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </TabletSettings>
       <PhoneSettings>
-        <SourceLocation DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/taskpane.html"/>
+        <SourceLocation DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/taskpane.html"/>
       </PhoneSettings>
     </Form>
   </FormSettings>
@@ -96,13 +96,13 @@
     
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/commands.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://YOUR_SWA_SUBDOMAIN.azurestaticapps.net/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://happy-rock-01b03941e.1.azurestaticapps.net/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Weekly Reports"/>

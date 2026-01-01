@@ -4,7 +4,7 @@ import { ConnectScreen } from './components/ConnectScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GenerateScreen } from './components/GenerateScreen';
 import { HistoryScreen } from './components/HistoryScreen';
-import { authService } from './services/authService';
+import { initializeAuth, logout } from './services/authService';
 import { AuthenticationError } from './services/api';
 import './styles/app.css';
 
@@ -17,14 +17,13 @@ const App: React.FC = () => {
 
   // Check for existing session on mount
   useEffect(() => {
-    const existingEmail = authService.getUserEmail();
-    const existingToken = authService.getSessionToken();
-    
-    if (existingEmail && existingToken) {
-      setUserEmail(existingEmail);
-      setIsConnected(true);
-      setCurrentScreen('settings');
-    }
+    initializeAuth().then(user => {
+      if (user) {
+        setUserEmail(user.email);
+        setIsConnected(true);
+        setCurrentScreen('settings');
+      }
+    });
   }, []);
 
   // Global error handler for authentication errors
@@ -39,18 +38,14 @@ const App: React.FC = () => {
     return () => window.removeEventListener('error', handleAuthError);
   }, []);
 
-  const handleConnect = (sessionToken: string, email: string) => {
-    // Store session token
-    authService.setSessionToken(sessionToken, email);
-    
-    setUserEmail(email);
+  const handleConnect = (user: { userId: string; email: string; tenantId: string }) => {
+    setUserEmail(user.email);
     setIsConnected(true);
     setCurrentScreen('settings');
   };
 
   const handleDisconnect = () => {
-    // Clear session token
-    authService.clearSession();
+    logout();
     
     setIsConnected(false);
     setUserEmail(null);

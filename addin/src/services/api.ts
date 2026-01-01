@@ -2,8 +2,6 @@
  * API Client for Outlook Weekly backend
  */
 
-import { authService } from './authService';
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 export interface UserSettings {
@@ -57,16 +55,10 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    // Get session token for authenticated requests
-    const sessionToken = authService.getSessionToken();
+    // Use cookie-based auth (credentials: 'include')
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-
-    // Add Bearer token for /me/* routes
-    if (endpoint.startsWith('/me') && sessionToken) {
-      headers['Authorization'] = `Bearer ${sessionToken}`;
-    }
 
     // Merge with any additional headers from options
     if (options.headers) {
@@ -76,12 +68,11 @@ class ApiClient {
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include' // Send cookies for session auth
     });
 
     // Handle authentication errors
     if (response.status === 401) {
-      // Clear invalid session
-      authService.clearSession();
       throw new AuthenticationError('Session expired. Please sign in again.');
     }
 

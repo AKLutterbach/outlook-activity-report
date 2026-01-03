@@ -10,7 +10,11 @@ src/types
 src/index.ts
 src/bootstrap.ts
 src/test-pdf.ts
+src/__tests__
 *.test.ts
 __tests__
 jest.config.js
 test-endpoints.ps1
+tsconfig.json
+package.json
+package-lock.json

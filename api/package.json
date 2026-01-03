@@ -7,7 +7,7 @@
   "scripts": {
     "bootstrap": "tsx src/bootstrap.ts",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "node build-functions.js && tsc --project tsconfig.functions.json",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",

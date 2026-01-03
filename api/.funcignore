@@ -1,0 +1,16 @@
+node_modules
+.git
+.vscode
+dist
+src/routes
+src/middleware
+src/storage
+src/services
+src/types
+src/index.ts
+src/bootstrap.ts
+src/test-pdf.ts
+*.test.ts
+__tests__
+jest.config.js
+test-endpoints.ps1

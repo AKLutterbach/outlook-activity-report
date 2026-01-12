@@ -1,7 +1,7 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { reportRunRepository } from '../../db/repositories';
+import { reportRunRepository } from '../src/db/repositories';
 import { QueueClient } from '@azure/storage-queue';
 
 const queueClient = new QueueClient(
@@ -9,20 +9,21 @@ const queueClient = new QueueClient(
   'report-generation'
 );
 
-const meGenerate: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
+async function meGenerate(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
-    const cookies = parseCookies(req.headers.cookie || '');
+    const cookieHeader = req.headers.get('cookie') || '';
+    const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies['session'];
     
     if (!sessionToken) {
-      context.res = { status: 401, body: { error: 'Unauthorized' } };
-      return;
+      return { status: 401, jsonBody: { error: 'Unauthorized' } };
     }
     
     const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!) as any;
     const { tenantId, userId, email } = decoded;
     
-    const { windowStart, windowEnd, cadence } = req.body;
+    const body = await req.json() as any;
+    const { windowStart, windowEnd, cadence } = body;
     
     // Create run record
     const runId = uuidv4();
@@ -50,18 +51,18 @@ const meGenerate: AzureFunction = async (context: Context, req: HttpRequest): Pr
     
     await queueClient.sendMessage(message);
     
-    context.res = {
+    return {
       status: 202,
-      body: { runId, status: 'QUEUED' }
+      jsonBody: { runId, status: 'QUEUED' }
     };
   } catch (err: any) {
-    context.log.error('Generate failed:', err);
-    context.res = {
+    context.error('Generate failed:', err);
+    return {
       status: 500,
-      body: { error: 'Failed to queue generation', details: err.message }
+      jsonBody: { error: 'Failed to queue generation', details: err.message }
     };
   }
-};
+}
 
 function parseCookies(cookieHeader: string): Record<string, string> {
   return cookieHeader.split(';').reduce((acc, cookie) => {
@@ -71,4 +72,9 @@ function parseCookies(cookieHeader: string): Record<string, string> {
   }, {} as Record<string, string>);
 }
 
-export default meGenerate;
+app.http('me-generate', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'me/generate',
+  handler: meGenerate
+});

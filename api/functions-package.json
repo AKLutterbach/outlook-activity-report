@@ -2,7 +2,7 @@
   "name": "outlook-reports-functions",
   "version": "1.0.0",
   "description": "Azure Functions for Outlook Weekly Reports",
-  "main": "index.js",
+  "main": "dist/functions.js",
   "dependencies": {
     "@azure/cosmos": "^4.9.0",
     "@azure/functions": "^4.0.0",

@@ -5,8 +5,8 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../types/api';
 import { UserSettingsRepository } from '../db';
 import { CosmosDbClient } from '../db/cosmosClient';
-import { Cadence, OutputMode } from '@outlook-weekly/shared';
-import { computeNextRunUtc } from '@outlook-weekly/shared';
+import { Cadence, OutputMode } from '../types/shared';
+import { computeNextRunUtc } from '../types/shared';
 
 /**
  * Validation schemas

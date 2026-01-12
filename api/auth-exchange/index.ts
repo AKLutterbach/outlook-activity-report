@@ -1,25 +1,24 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import * as msal from '@azure/msal-node';
-import { createMsalClient, saveMsalCache } from '../auth/msalCache';
-import { cosmosClient } from '../db/cosmosClient';
+import { createMsalClient, saveMsalCache } from '../src/auth/msalCache';
+import { cosmosClient } from '../src/db/cosmosClient';
 import jwt from 'jsonwebtoken';
 
 const pkceStateContainer = cosmosClient.database('outlookweekly').container('pkce-state');
 
-const authExchange: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
+async function authExchange(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
-    const { code, state } = req.body;
+    const body = await req.json() as any;
+    const { code, state } = body;
     
     if (!code || !state) {
-      context.res = { status: 400, body: { error: 'Missing code or state' } };
-      return;
+      return { status: 400, jsonBody: { error: 'Missing code or state' } };
     }
     
     // Retrieve and delete verifier
     const stateRecord = await pkceStateContainer.item(state, state).read();
     if (!stateRecord.resource) {
-      context.res = { status: 400, body: { error: 'Invalid or expired state' } };
-      return;
+      return { status: 400, jsonBody: { error: 'Invalid or expired state' } };
     }
     
     const { verifier } = stateRecord.resource;
@@ -58,20 +57,25 @@ const authExchange: AzureFunction = async (context: Context, req: HttpRequest): 
       { expiresIn: '7d' }
     );
     
-    context.res = {
+    return {
       status: 200,
       headers: {
         'Set-Cookie': `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=604800`
       },
-      body: { userId, email, tenantId }
+      jsonBody: { userId, email, tenantId }
     };
   } catch (err: any) {
-    context.log.error('Token exchange failed:', err);
-    context.res = {
+    context.error('Token exchange failed:', err);
+    return {
       status: 500,
-      body: { error: 'Token exchange failed', details: err.message }
+      jsonBody: { error: 'Token exchange failed', details: err.message }
     };
   }
-};
+}
 
-export default authExchange;
+app.http('auth-exchange', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'auth/exchange',
+  handler: authExchange
+});

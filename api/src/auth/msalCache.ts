@@ -28,10 +28,7 @@ export async function loadMsalCache(tenantId: string, userId: string): Promise<m
     }
     
     const decrypted = decrypt(record.msalCacheEncrypted, ENCRYPTION_SECRET);
-    const tokenCache = new msal.TokenCache(
-      new msal.NodeStorage(),
-      new msal.Logger({ logLevel: msal.LogLevel.Warning })
-    );
+    const tokenCache = new msal.TokenCache();
     tokenCache.deserialize(decrypted);
     
     return tokenCache;

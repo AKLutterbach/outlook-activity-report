@@ -1,15 +1,15 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import jwt from 'jsonwebtoken';
-import { reportRunRepository } from '../../db/repositories';
+import { reportRunRepository } from '../src/db/repositories';
 
-const meRuns: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
+async function meRuns(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
-    const cookies = parseCookies(req.headers.cookie || '');
+    const cookieHeader = req.headers.get('cookie') || '';
+    const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies['session'];
     
     if (!sessionToken) {
-      context.res = { status: 401, body: { error: 'Unauthorized' } };
-      return;
+      return { status: 401, jsonBody: { error: 'Unauthorized' } };
     }
     
     const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!) as any;
@@ -17,18 +17,18 @@ const meRuns: AzureFunction = async (context: Context, req: HttpRequest): Promis
     
     const runs = await reportRunRepository.findByUser(tenantId, userId);
     
-    context.res = {
+    return {
       status: 200,
-      body: { runs }
+      jsonBody: { runs }
     };
   } catch (err: any) {
-    context.log.error('Failed to fetch runs:', err);
-    context.res = {
+    context.error('Failed to fetch runs:', err);
+    return {
       status: 500,
-      body: { error: 'Failed to fetch runs' }
+      jsonBody: { error: 'Failed to fetch runs' }
     };
   }
-};
+}
 
 function parseCookies(cookieHeader: string): Record<string, string> {
   return cookieHeader.split(';').reduce((acc, cookie) => {
@@ -38,4 +38,9 @@ function parseCookies(cookieHeader: string): Record<string, string> {
   }, {} as Record<string, string>);
 }
 
-export default meRuns;
+app.http('me-runs', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  route: 'me/runs',
+  handler: meRuns
+});

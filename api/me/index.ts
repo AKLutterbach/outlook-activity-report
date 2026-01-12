@@ -1,30 +1,30 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import jwt from 'jsonwebtoken';
 
-const me: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
+async function me(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
-    const cookies = parseCookies(req.headers.cookie || '');
+    const cookieHeader = req.headers.get('cookie') || '';
+    const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies['session'];
     
     if (!sessionToken) {
-      context.res = { status: 401, body: { error: 'Unauthorized' } };
-      return;
+      return { status: 401, jsonBody: { error: 'Unauthorized' } };
     }
     
     const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!) as any;
     
-    context.res = {
+    return {
       status: 200,
-      body: {
+      jsonBody: {
         userId: decoded.userId,
         email: decoded.email,
         tenantId: decoded.tenantId
       }
     };
   } catch (err) {
-    context.res = { status: 401, body: { error: 'Invalid session' } };
+    return { status: 401, jsonBody: { error: 'Invalid session' } };
   }
-};
+}
 
 function parseCookies(cookieHeader: string): Record<string, string> {
   return cookieHeader.split(';').reduce((acc, cookie) => {
@@ -34,4 +34,9 @@ function parseCookies(cookieHeader: string): Record<string, string> {
   }, {} as Record<string, string>);
 }
 
-export default me;
+app.http('me', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  route: 'me',
+  handler: me
+});

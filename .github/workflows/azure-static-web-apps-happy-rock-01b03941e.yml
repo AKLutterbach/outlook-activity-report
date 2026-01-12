@@ -22,13 +22,35 @@ jobs:
         with:
           submodules: true
           lfs: false
-      - name: Prepare Functions for deployment
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+      
+      - name: Build API Functions (Deterministic Build)
         run: |
           cd api
+          npm ci
+          npm run build
+          echo "✓ TypeScript compiled successfully"
+          echo "✓ Entry point: dist/functions.js"
+          ls -la dist/functions.js
+      
+      - name: Prepare Functions for Deployment
+        run: |
+          cd api
+          # Use deployment-specific package.json (keeps dependencies minimal)
           cp functions-package.json package.json
-          rm -f package-lock.json tsconfig.json
+          # Remove dev artifacts (source already excluded by .funcignore)
+          rm -f package-lock.json
+          echo "✓ Deployment package prepared"
+      
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
+      
       - name: Get Id Token
         uses: actions/github-script@v6
         id: idtoken
@@ -37,18 +59,18 @@ jobs:
                const coredemo = require('@actions/core')
                return await coredemo.getIDToken()
            result-encoding: string
+      
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_HAPPY_ROCK_01B03941E }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+          ###### Repository/Build Configurations ######
           app_location: "/addin" # App source code path
-          api_location: "/api" # Functions source - Azure will compile TypeScript
-          output_location: "dist" # Built app content directory - optional
-          skip_api_build: false # Let Azure build the Functions
+          api_location: "/api" # Pre-built Functions (dist/ folder deployed via .funcignore)
+          output_location: "dist" # Built app content directory
+          skip_api_build: true # We built locally above - deploy compiled artifacts only
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
 

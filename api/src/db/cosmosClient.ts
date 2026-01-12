@@ -1,5 +1,5 @@
 import { CosmosClient, Database, Container } from '@azure/cosmos';
-import { COSMOS_CONTAINERS } from '@outlook-weekly/shared';
+import { COSMOS_CONTAINERS } from '../types/shared';
 
 /**
  * Cosmos DB client configuration
@@ -89,3 +89,6 @@ export function createCosmosClient(): CosmosDbClient {
 
   return new CosmosDbClient({ endpoint, key, databaseId });
 }
+
+// Export singleton instance
+export const cosmosClient = createCosmosClient();

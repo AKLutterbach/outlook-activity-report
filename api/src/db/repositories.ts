@@ -1,16 +1,45 @@
 import { Container } from '@azure/cosmos';
 import {
-  TenantDocument,
-  UserDocument,
-  UserTokenDocument,
-  UserSettingsDocument,
-  ReportRunDocument,
-  SCHEMA_VERSIONS,
   Cadence,
   OutputMode,
   RunStatus,
-} from '@outlook-weekly/shared';
+  UserSettings,
+  ReportRun
+} from '../types/shared';
 import { CosmosDbClient } from './cosmosClient';
+
+// Placeholder types for other documents
+interface TenantDocument { 
+  id: string; 
+  schemaVersion: number;
+  displayName?: string; 
+  createdAt: string;
+  updatedAt: string;
+}
+interface UserDocument { 
+  id: string; 
+  email: string; 
+  tenantId: string; 
+  schemaVersion: number;
+  displayName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface UserTokenDocument { 
+  id: string; 
+  userId: string;
+  tenantId: string;
+  schemaVersion: number;
+  encryptedRefreshToken: string;
+  scopes: string[];
+  tokenExpiry?: string;
+  msalCacheEncrypted?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+interface UserSettingsDocument extends UserSettings { id: string; }
+interface ReportRunDocument extends ReportRun { }
+const SCHEMA_VERSIONS = { TENANT: 1, USER: 1, SETTINGS: 1, RUN: 1, USER_TOKEN: 1, USER_SETTINGS: 1 };
 
 /**
  * Base repository with common methods
@@ -48,7 +77,7 @@ export class TenantRepository extends BaseRepository {
     const container = await this.getContainer();
     const doc: TenantDocument = {
       id: tenantId,
-      schemaVersion: SCHEMA_VERSIONS.tenant,
+      schemaVersion: SCHEMA_VERSIONS.TENANT,
       displayName,
       createdAt: this.now(),
       updatedAt: this.now(),
@@ -99,7 +128,7 @@ export class UserRepository extends BaseRepository {
     const doc: UserDocument = {
       id: userId,
       tenantId,
-      schemaVersion: SCHEMA_VERSIONS.user,
+      schemaVersion: SCHEMA_VERSIONS.USER,
       email,
       displayName,
       createdAt: this.now(),
@@ -135,7 +164,7 @@ export class UserRepository extends BaseRepository {
     const doc: UserDocument = {
       id: userId,
       tenantId,
-      schemaVersion: SCHEMA_VERSIONS.user,
+      schemaVersion: SCHEMA_VERSIONS.USER,
       email,
       displayName,
       createdAt: existing?.createdAt || this.now(),
@@ -169,7 +198,7 @@ export class UserTokenRepository extends BaseRepository {
       id: this.generateId(),
       userId,
       tenantId,
-      schemaVersion: SCHEMA_VERSIONS.userToken,
+      schemaVersion: SCHEMA_VERSIONS.USER_TOKEN,
       encryptedRefreshToken,
       scopes,
       tokenExpiry,
@@ -217,7 +246,7 @@ export class UserTokenRepository extends BaseRepository {
         id: this.generateId(),
         userId,
         tenantId,
-        schemaVersion: SCHEMA_VERSIONS.userToken,
+        schemaVersion: SCHEMA_VERSIONS.USER_TOKEN,
         encryptedRefreshToken: data.encryptedRefreshToken || '',
         scopes: [],
         msalCacheEncrypted: data.msalCacheEncrypted,
@@ -296,7 +325,7 @@ export class UserSettingsRepository extends BaseRepository {
       id: userId, // One settings doc per user
       userId,
       tenantId,
-      schemaVersion: SCHEMA_VERSIONS.userSettings,
+      schemaVersion: SCHEMA_VERSIONS.USER_SETTINGS,
       cadence: settings.cadence,
       outputMode: settings.outputMode,
       dayOfWeek: settings.dayOfWeek,
@@ -347,7 +376,7 @@ export class UserSettingsRepository extends BaseRepository {
       id: userId,
       userId,
       tenantId,
-      schemaVersion: SCHEMA_VERSIONS.userSettings,
+      schemaVersion: SCHEMA_VERSIONS.USER_SETTINGS,
       cadence: settings.cadence,
       outputMode: settings.outputMode,
       dayOfWeek: settings.dayOfWeek,
@@ -536,4 +565,15 @@ export class ReportRunRepository extends BaseRepository {
   private generateId(): string {
     return `run_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   }
+}
+
+// Export factory functions instead of singletons to avoid module-level async issues
+export function createRepositories(cosmosClient: CosmosDbClient) {
+  return {
+    tenantRepository: new TenantRepository(cosmosClient),
+    userRepository: new UserRepository(cosmosClient),
+    userTokenRepository: new UserTokenRepository(cosmosClient),
+    userSettingsRepository: new UserSettingsRepository(cosmosClient),
+    reportRunRepository: new ReportRunRepository(cosmosClient),
+  };
 }

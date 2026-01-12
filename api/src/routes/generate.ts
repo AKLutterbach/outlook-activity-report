@@ -4,7 +4,7 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../types/api';
 import { ReportRunRepository, UserSettingsRepository, UserTokenRepository } from '../db';
 import { CosmosDbClient } from '../db/cosmosClient';
-import { RunStatus } from '@outlook-weekly/shared';
+import { RunStatus } from '../types/shared';
 import { getGraphClient } from '../services/graphClient';
 
 export function createGenerateRouter(cosmosClient: CosmosDbClient) {

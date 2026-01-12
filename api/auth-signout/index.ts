@@ -1,13 +1,18 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 
-const authSignout: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
-  context.res = {
+async function authSignout(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  return {
     status: 200,
     headers: {
       'Set-Cookie': 'session=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0'
     },
-    body: { success: true }
+    jsonBody: { success: true }
   };
-};
+}
 
-export default authSignout;
+app.http('auth-signout', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'auth/signout',
+  handler: authSignout
+});

@@ -1,11 +1,11 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { generatePKCEChallenge, generateState } from '../auth/pkce';
-import { cosmosClient } from '../db/cosmosClient';
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { generatePKCEChallenge, generateState } from '../src/auth/pkce';
+import { cosmosClient } from '../src/db/cosmosClient';
 
 // Temporary state storage (use Cosmos container for production)
 const pkceStateContainer = cosmosClient.database('outlookweekly').container('pkce-state');
 
-const authStart: AzureFunction = async (context: Context, req: HttpRequest): Promise<void> => {
+async function authStart(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     const { verifier, challenge } = generatePKCEChallenge();
     const state = generateState();
@@ -33,17 +33,22 @@ const authStart: AzureFunction = async (context: Context, req: HttpRequest): Pro
     authUrl.searchParams.set('code_challenge_method', 'S256');
     authUrl.searchParams.set('prompt', 'select_account');
     
-    context.res = {
+    return {
       status: 302,
       headers: { Location: authUrl.toString() }
     };
   } catch (err: any) {
-    context.log.error('Auth start failed:', err);
-    context.res = {
+    context.error('Auth start failed:', err);
+    return {
       status: 500,
-      body: { error: 'Failed to initiate auth' }
+      jsonBody: { error: 'Failed to initiate auth' }
     };
   }
-};
+}
 
-export default authStart;
+app.http('auth-start', {
+  methods: ['GET'],
+  authLevel: 'anonymous',
+  route: 'auth/start',
+  handler: authStart
+});

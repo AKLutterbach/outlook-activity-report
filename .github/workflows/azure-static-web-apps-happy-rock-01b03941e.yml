@@ -42,9 +42,8 @@ jobs:
           cd api
           # Use deployment-specific package.json (keeps dependencies minimal)
           cp functions-package.json package.json
-          # Remove dev artifacts (source already excluded by .funcignore)
-          rm -f package-lock.json
-          echo "✓ Deployment package prepared"
+          # Keep local.settings.json so Azure can detect Node.js runtime
+          echo "✓ Deployment package prepared (package.json swapped, local.settings.json retained)"
       
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client

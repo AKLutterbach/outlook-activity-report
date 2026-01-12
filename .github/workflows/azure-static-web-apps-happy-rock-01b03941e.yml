@@ -67,7 +67,8 @@ jobs:
           app_location: "/addin" # App source code path
           api_location: "/api" # Pre-built Functions (dist/ folder deployed via .funcignore)
           output_location: "dist" # Built app content directory
-          skip_api_build: true # We built locally above - deploy compiled artifacts only
+          skip_api_build: false # Let Azure detect the runtime from package.json
+          api_build_command: "echo 'Build already completed in previous step'"
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
 

@@ -73,7 +73,8 @@ jobs:
           app_location: "/addin" # App source code path
           api_location: "/api-deploy" # Isolated pre-built Functions folder (not part of npm workspace)
           output_location: "dist" # Built app content directory
-          skip_api_build: true # Pre-built with correct dependencies in isolated folder
+          skip_api_build: false # Let SWA detect Node.js runtime from package.json
+          api_build_command: "echo 'Dependencies pre-installed with correct versions'"
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
 

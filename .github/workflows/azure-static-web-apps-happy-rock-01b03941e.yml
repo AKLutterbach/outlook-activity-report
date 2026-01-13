@@ -37,13 +37,19 @@ jobs:
           echo "✓ Entry point: dist/functions.js"
           ls -la dist/functions.js
       
-      - name: Prepare Functions for Deployment
+      - name: Create Isolated Functions Deployment
         run: |
-          cd api
-          # Use deployment-specific package.json (keeps dependencies minimal)
-          cp functions-package.json package.json
-          # Keep local.settings.json so Azure can detect Node.js runtime
-          echo "✓ Deployment package prepared (package.json swapped, local.settings.json retained)"
+          # Create a standalone folder OUTSIDE the npm workspace
+          mkdir -p api-deploy
+          # Copy only what's needed for deployment
+          cp api/functions-package.json api-deploy/package.json
+          cp -r api/dist api-deploy/
+          cp api/host.json api-deploy/
+          cp api/local.settings.json api-deploy/ || true
+          # Install production deps in isolated folder with Node 18-compatible versions
+          cd api-deploy
+          npm install --omit=dev
+          echo "✓ Isolated deployment folder created with $(ls -la node_modules | wc -l) packages"
       
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
@@ -65,10 +71,9 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations ######
           app_location: "/addin" # App source code path
-          api_location: "/api" # Pre-built Functions (dist/ folder deployed via .funcignore)
+          api_location: "/api-deploy" # Isolated pre-built Functions folder (not part of npm workspace)
           output_location: "dist" # Built app content directory
-          skip_api_build: false # Let Azure detect the runtime from package.json
-          api_build_command: "echo 'Build already completed in previous step'"
+          skip_api_build: true # Pre-built with correct dependencies in isolated folder
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
 

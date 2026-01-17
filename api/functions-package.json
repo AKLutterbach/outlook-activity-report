@@ -16,6 +16,7 @@
     "uuid": "11.1.0"
   },
   "overrides": {
+    "@azure/core-auth": "1.9.0",
     "@azure/core-tracing": "1.1.2",
     "@azure/core-util": "1.9.2",
     "@azure/core-rest-pipeline": "1.16.3",

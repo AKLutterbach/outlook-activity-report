@@ -43,13 +43,14 @@ jobs:
           mkdir -p api-deploy
           # Copy only what's needed for deployment
           cp api/functions-package.json api-deploy/package.json
+          cp api/npm-shrinkwrap.json api-deploy/npm-shrinkwrap.json
           cp -r api/dist api-deploy/
           cp api/host.json api-deploy/
           cp api/local.settings.json api-deploy/ || true
-          # Install production deps in isolated folder with Node 18-compatible versions
+          # Install production deps using shrinkwrap (locks ALL versions including transitive)
           cd api-deploy
-          npm install --omit=dev
-          echo "✓ Isolated deployment folder created with $(ls -la node_modules | wc -l) packages"
+          npm ci --omit=dev
+          echo "✓ Isolated deployment folder created with shrinkwrap-locked versions"
       
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client

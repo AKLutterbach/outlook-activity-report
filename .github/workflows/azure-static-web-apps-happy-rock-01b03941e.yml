@@ -71,8 +71,8 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_HAPPY_ROCK_01B03941E }}
           action: "upload"
           ###### Repository/Build Configurations ######
-          app_location: "/addin" # App source code path
-          api_location: "/api-deploy" # Isolated pre-built Functions folder (not part of npm workspace)
+          app_location: "./addin" # App source code path
+          api_location: "./api-deploy" # Isolated pre-built Functions folder (not part of npm workspace)
           output_location: "dist" # Built app content directory
           skip_api_build: false # Let SWA detect Node.js runtime from package.json
           api_build_command: "echo 'Dependencies pre-installed with correct versions'"

@@ -50,11 +50,15 @@ jobs:
           cp -r api/dist deploy/
           # Copy host.json
           cp api/host.json deploy/
+          # Copy function.json folders (v3 programming model)
+          cp -r api/health deploy/
           # Install production dependencies with locked versions
           cd deploy
           npm ci --omit=dev
           echo "✓ Deployment package ready"
           ls -la
+          echo "health folder:"
+          ls -la health/
 
       - name: Login to Azure
         uses: azure/login@v2

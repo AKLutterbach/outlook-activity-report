@@ -4,16 +4,20 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'addin/**'
+      - '.github/workflows/azure-static-web-apps-happy-rock-01b03941e.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    name: Build and Deploy Frontend
     permissions:
        id-token: write
        contents: read
@@ -22,35 +26,6 @@ jobs:
         with:
           submodules: true
           lfs: false
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Build API Functions (Deterministic Build)
-        run: |
-          cd api
-          npm ci
-          npm run build
-          echo "✓ TypeScript compiled successfully"
-          echo "✓ Entry point: dist/functions.js"
-          ls -la dist/functions.js
-      
-      - name: Create Isolated Functions Deployment
-        run: |
-          # Create a standalone folder OUTSIDE the npm workspace
-          mkdir -p api-deploy
-          # Copy only what's needed for deployment
-          cp api/functions-package.json api-deploy/package.json
-          cp api/npm-shrinkwrap.json api-deploy/npm-shrinkwrap.json
-          cp -r api/dist api-deploy/
-          cp api/host.json api-deploy/
-          cp api/local.settings.json api-deploy/ || true
-          # Install production deps using shrinkwrap (locks ALL versions including transitive)
-          cd api-deploy
-          npm ci --omit=dev
-          echo "✓ Isolated deployment folder created with shrinkwrap-locked versions"
       
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
@@ -64,20 +39,17 @@ jobs:
                return await coredemo.getIDToken()
            result-encoding: string
       
-      - name: Build And Deploy
+      - name: Build And Deploy Frontend
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_HAPPY_ROCK_01B03941E }}
           action: "upload"
-          ###### Repository/Build Configurations ######
-          app_location: "./addin" # App source code path
-          api_location: "./api-deploy" # Isolated pre-built Functions folder (not part of npm workspace)
-          output_location: "dist" # Built app content directory
-          skip_api_build: false # Let SWA detect Node.js runtime from package.json
-          api_build_command: "echo 'Dependencies pre-installed with correct versions'"
+          app_location: "./addin"
+          output_location: "dist"
+          # No API - using standalone Azure Function App instead
+          skip_api_build: true
           github_id_token: ${{ steps.idtoken.outputs.result }}
-          ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

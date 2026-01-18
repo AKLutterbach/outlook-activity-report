@@ -2,6 +2,7 @@
   "name": "outlook-reports-functions",
   "version": "1.0.0",
   "description": "Azure Functions for Outlook Weekly Reports",
+  "type": "commonjs",
   "main": "dist/healthOnly.js",
   "engines": {
     "node": ">=18.0.0"

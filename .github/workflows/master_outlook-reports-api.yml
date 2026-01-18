@@ -1,69 +1,61 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Deploy Azure Functions to outlook-reports-api
+# Uses isolated deployment folder with locked package versions
 
-name: Build and deploy Node.js project to Azure Function App - outlook-reports-api
+name: Deploy API to Azure Function App
 
 on:
   push:
     branches:
       - master
+    paths:
+      - 'api/**'
+      - '.github/workflows/master_outlook-reports-api.yml'
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '18.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
+  NODE_VERSION: '18.x'
+  AZURE_FUNCTIONAPP_NAME: 'outlook-reports-api'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
-      - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v3
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Npm'
-        shell: bash
+      - name: 'Build API'
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-          popd
+          cd api
+          npm ci
+          npm run build
+          echo "✓ TypeScript compiled"
+          ls -la dist/
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: release.zip
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-
-      - name: Unzip artifact for deployment
+      - name: 'Create Deployment Package'
         run: |
-          unzip release.zip
-          rm release.zip
-      
+          mkdir -p deploy
+          # Copy deployment package.json (has locked versions)
+          cp api/functions-package.json deploy/package.json
+          cp api/npm-shrinkwrap.json deploy/npm-shrinkwrap.json
+          # Copy compiled code
+          cp -r api/dist deploy/
+          # Copy host.json
+          cp api/host.json deploy/
+          # Install production dependencies with locked versions
+          cd deploy
+          npm ci --omit=dev
+          echo "✓ Deployment package ready"
+          ls -la
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -71,11 +63,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_94571B71B4C94F1D97335983DFC3F9C4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3B8EAF1FA046422D8B38F8C0305B2435 }}
 
-      - name: 'Run Azure Functions Action'
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
-        id: fa
         with:
-          app-name: 'outlook-reports-api'
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: deploy
           

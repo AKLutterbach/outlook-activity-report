@@ -25,6 +25,7 @@
     "@azure/core-xml": "1.4.4"
   },
   "scripts": {
+    "build": "tsc src/healthV3.ts --outDir dist --module commonjs --target ES2022 --esModuleInterop",
     "start": "func start"
   }
 }

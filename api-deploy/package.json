@@ -1,0 +1,28 @@
+{
+  "name": "outlook-reports-functions",
+  "version": "1.0.0",
+  "description": "Azure Functions for Outlook Weekly Reports",
+  "main": "dist/functions.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@azure/cosmos": "3.17.3",
+    "@azure/functions": "4.0.0",
+    "@azure/msal-node": "2.15.0",
+    "@azure/storage-queue": "12.17.0",
+    "@microsoft/microsoft-graph-client": "3.0.7",
+    "jsonwebtoken": "9.0.2",
+    "uuid": "11.1.0"
+  },
+  "overrides": {
+    "@azure/core-tracing": "1.1.2",
+    "@azure/core-util": "1.9.2",
+    "@azure/core-rest-pipeline": "1.16.3",
+    "@azure/logger": "1.1.4",
+    "@azure/core-xml": "1.4.4"
+  },
+  "scripts": {
+    "start": "func start"
+  }
+}
